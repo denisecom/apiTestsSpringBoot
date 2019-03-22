@@ -21,12 +21,4 @@ public class Student {
 
     private String registerNumber;
 
-    protected Student(){
-    }
-
-    public Student(String name, String registerNumber){
-        this.name = name;
-        this.registerNumber = registerNumber;
-    }
-
 }

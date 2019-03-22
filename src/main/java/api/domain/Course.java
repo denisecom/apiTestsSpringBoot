@@ -19,10 +19,4 @@ public class Course {
     @NotNull
     private String name;
 
-    protected Course(){
-    }
-
-    public Course(String name){
-        this.name = name;
-    }
 }
