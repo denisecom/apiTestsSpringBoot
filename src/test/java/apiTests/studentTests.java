@@ -38,11 +38,13 @@ public class studentTests {
     private final String STUDENT_TECHNOLOGY_NAME = "Denise Maia";
     private final String STUDENT_TECHNOLOGY_RN = "R1310";
     private Course course;
+    private LoadDataDB loadDataDB;
 
     @Before
     public void setPort() {
         RestAssured.port = port;
-        course = courseService.addCourse(LoadDataDB.loadCoursesDB("Marketing"));
+        loadDataDB = new LoadDataDB(courseService, studentService);
+        course = loadDataDB.loadCoursesDB("Marketing");
         ENDPOINT_COURSE_ID = "/courses/".concat(course.getId().toString());
     }
 
@@ -66,14 +68,14 @@ public class studentTests {
 
     @Test
     public void shouldReturnSuccessfullyWhenUpdateStudent(){
-        Student studentMarketing = LoadDataDB.loadStudentDB(course, STUDENT_MARKETING_NAME, STUDENT_MARKETING_RN);
-        Long studentID = studentService.addStudent(course.getId(), studentMarketing).getId();
-        studentMarketing.setName(STUDENT_TECHNOLOGY_NAME);
-        studentMarketing.setRegisterNumber(STUDENT_TECHNOLOGY_RN);
+        Long studentID = loadDataDB.loadStudentDB(course, STUDENT_MARKETING_NAME, STUDENT_MARKETING_RN).getId();
+        Student studentTechnology = new Student();
+        studentTechnology.setName(STUDENT_TECHNOLOGY_NAME);
+        studentTechnology.setRegisterNumber(STUDENT_TECHNOLOGY_RN);
         RestAssured.
                 given().
                 header("Content-Type", "application/json").
-                body(studentMarketing).
+                body(studentTechnology).
                 when().
                 put(ENDPOINT_COURSE_ID.concat(ENDPOINT).concat(studentID.toString())).
                 then().
@@ -86,8 +88,7 @@ public class studentTests {
 
     @Test
     public void shouldReturnSuccessfullyWhenFindByStudentId(){
-        Student studentMarketing = LoadDataDB.loadStudentDB(course, STUDENT_MARKETING_NAME, STUDENT_MARKETING_RN);
-        String studentID = studentService.addStudent(course.getId(), studentMarketing).getId().toString();
+        String studentID = loadDataDB.loadStudentDB(course, STUDENT_MARKETING_NAME, STUDENT_MARKETING_RN).getId().toString();
         RestAssured.
                 given().
                 header("Content-Type", "application/json").
@@ -102,10 +103,9 @@ public class studentTests {
 
     @Test
     public void shouldReturnSuccessfullyWhenFindAllStudentsByCourse(){
-        Student studentMarketing = LoadDataDB.loadStudentDB(course, STUDENT_MARKETING_NAME, STUDENT_MARKETING_RN);
-        Student studentTechnology = LoadDataDB.loadStudentDB(course, STUDENT_TECHNOLOGY_NAME, STUDENT_TECHNOLOGY_RN);
-        studentService.addStudent(course.getId(),studentMarketing);
-        studentService.addStudent(course.getId(),studentTechnology);
+        loadDataDB.loadStudentDB(course, STUDENT_MARKETING_NAME, STUDENT_MARKETING_RN);
+        loadDataDB.loadStudentDB(course, STUDENT_TECHNOLOGY_NAME, STUDENT_TECHNOLOGY_RN);
+
         RestAssured.
                 given().
                 header("Content-Type", "application/json").
@@ -122,8 +122,7 @@ public class studentTests {
 
     @Test
     public void shouldReturnSuccessfullyWhenDeleteStudent(){
-        Student studentMarketing = LoadDataDB.loadStudentDB(course, STUDENT_MARKETING_NAME, STUDENT_MARKETING_RN);
-        String studentID = studentService.addStudent(course.getId(),studentMarketing).getId().toString();
+        String studentID = loadDataDB.loadStudentDB(course, STUDENT_MARKETING_NAME, STUDENT_MARKETING_RN).getId().toString();
         RestAssured.
                 given().
                 header("Content-Type", "application/json").

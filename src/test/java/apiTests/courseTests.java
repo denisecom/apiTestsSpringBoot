@@ -3,6 +3,7 @@ package apiTests;
 import api.SpringApplicationRunner;
 import api.domain.Course;
 import api.services.CourseService;
+import api.services.StudentService;
 import api.utils.LoadDataDB;
 import io.restassured.RestAssured;
 import org.junit.After;
@@ -13,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.test.context.junit4.SpringRunner;
-
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertFalse;
 
@@ -23,16 +23,21 @@ public class courseTests {
     @Autowired
     private CourseService courseService;
 
+    @Autowired
+    private StudentService studentService;
+
     @LocalServerPort
     private int port;
 
     private String ENDPOINT = "/courses/";
     private final String MARKETING_COURSE = "Marketing";
     private final String TECHNOLOGY_COURSE = "Technology";
+    private LoadDataDB loadDataDB;
 
     @Before
     public void setPort() {
         RestAssured.port = port;
+        loadDataDB = new LoadDataDB(courseService, studentService);
     }
 
     @Test
@@ -53,13 +58,13 @@ public class courseTests {
 
     @Test
     public void shouldReturnSuccessfullyWhenUpdateCourse(){
-        Course course = LoadDataDB.loadCoursesDB(MARKETING_COURSE);
-        Long courseID = courseService.addCourse(course).getId();
-        course.setName(TECHNOLOGY_COURSE);
+        Long courseID = loadDataDB.loadCoursesDB(MARKETING_COURSE).getId();
+        Course technology = new Course();
+        technology.setName(TECHNOLOGY_COURSE);
         RestAssured.
                 given().
                 header("Content-Type", "application/json").
-                body(course).
+                body(technology).
                 when().
                 put(ENDPOINT.concat(courseID.toString())).
                 then().
@@ -71,8 +76,7 @@ public class courseTests {
 
     @Test
     public void shouldReturnSuccessfullyWhenFindByCourse(){
-        Course course = LoadDataDB.loadCoursesDB(MARKETING_COURSE);
-        String courseID = courseService.addCourse(course).getId().toString();
+        String courseID = loadDataDB.loadCoursesDB(MARKETING_COURSE).getId().toString();
         RestAssured.
                 given().
                 header("Content-Type", "application/json").
@@ -86,10 +90,8 @@ public class courseTests {
 
     @Test
     public void shouldReturnSuccessfullyWhenFindAllCourses(){
-        Course marketing = LoadDataDB.loadCoursesDB(MARKETING_COURSE);
-        Course technology = LoadDataDB.loadCoursesDB(TECHNOLOGY_COURSE);
-        courseService.addCourse(marketing);
-        courseService.addCourse(technology);
+        loadDataDB.loadCoursesDB(MARKETING_COURSE);
+        loadDataDB.loadCoursesDB(TECHNOLOGY_COURSE);
         RestAssured.
                 given().
                 header("Content-Type", "application/json").
@@ -104,8 +106,7 @@ public class courseTests {
 
     @Test
     public void shouldReturnSuccessfullyWhenDeleteCourse(){
-        Course course = LoadDataDB.loadCoursesDB(MARKETING_COURSE);
-        String courseID = courseService.addCourse(course).getId().toString();
+        String courseID = loadDataDB.loadCoursesDB(MARKETING_COURSE).getId().toString();
         RestAssured.
                 given().
                 header("Content-Type", "application/json").
